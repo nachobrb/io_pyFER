@@ -22,9 +22,9 @@ def load_data():
     data_test = []
 
 
-    path_dataset_img = "../dataset/used/cohn-kanade-images/"
-    path_dataset_label = "../dataset/used/Emotion/"
-    path_dataset_test = "../dataset/used/cohn-kanade-test/"
+    path_dataset_img = "../../dataset/used/cohn-kanade-images/"
+    path_dataset_label = "../../dataset/used/Emotion/"
+    path_dataset_test = "../../dataset/used/cohn-kanade-test/"
 
     dirs_dataset_img = get_elements(path_dataset_img,"dir")
     dirs_dataset_label = get_elements(path_dataset_img,"path_dataset_label")
