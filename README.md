@@ -1,10 +1,8 @@
-img[src*="#primaryemotions"] {
-   width:150px;
-   height:100px;
-}
 # io_pyFER
 ## Goal
-The goal of this project is to write a program able to recognize emotions given facial expressions images and also allowing to predict/recognize new emotions based in a combination of <b>Primary</b>, <b>Secondary</b> and <b>Tertiary</b>.
+The goal of this project is to write a program able to recognize emotions given facial expressions images and also allowing to predict/recognize new emotions based in a combination of <b>Basic Emotions</b>.
 
-![Primary Emotions](/md_images/primary_emotions.jpg =100x100)
-
+<p align="center"> 
+<img src="/md_images/basic_emotions.jpg" alt="Basic Emotions"
+>
+</p>
