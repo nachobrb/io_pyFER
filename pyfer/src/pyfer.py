@@ -3,6 +3,11 @@ import cv2
 from os import listdir
 from os.path import isfile, join, isdir
 import re
+import matplotlib.pyplot as plt
+from keras.utils import to_categorical
+from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D
+from keras.models import Sequential
+import numpy as np
 
 
 # ====== GLOBAL VARS ======
@@ -51,10 +56,7 @@ def load_data():
                     for element in elems_tmp:
                         if element.endswith(".png"):
                             data_train.append(path_dataset_img + directory + "/" + path + "/" + element)
-                            data_label.append(txt_content)
-                    
-                    #print(elems_tmp)
-                    #print(txt_content)
+                            data_label.append(int(txt_content))
 
                 else:
                     elems_tmp = get_elements(path_dataset_img + directory + "/" + path,"file")
@@ -70,10 +72,50 @@ def load_data():
             for element in elems_tmp:
                 if element.endswith(".png"):
                     data_test.append(path_dataset_test + "/" + directory + "/" + dirs_sub_tmp + "/" + element)
+    for i in range(0, len(data_train)):
+        data_train[i] = cv2.imread(data_train[i])
     return data_train, data_label, data_test
 
 
 
 # ========= MAIN ==========
-data_train, data_label, data_test = load_data()
-print(data_train, data_label, data_test)
+print("Retreiving data...")
+x_train, y_train, data_test = load_data()
+y_train_one_hot = to_categorical(y_train)
+x_train = np.divide(x_train,255)
+
+x_test = np.array(x_train[0:int(len(x_train)*0.1)])
+y_test = y_train_one_hot[0:int(len(y_train_one_hot)*0.1)]
+
+x_train = np.array(x_train[int(len(x_train)*0.1):])
+y_train = y_train_one_hot[int(len(y_train_one_hot)*0.1):]
+#print(x_train)
+print("OK")
+
+
+
+# Architechture
+model = Sequential()
+
+# Conv layer
+model.add(Conv2D(32, (5,5), activation='relu', input_shape=(32,32,3)))
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Conv2D(32, (5,5), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Flatten())
+
+model.add(Dense(1000, activation='relu'))
+model.add(Dense(10, activation='softmax'))
+
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+hist = model.fit(x_train, y_train, batch_size=256, epochs=10, validation_split=0.3) 
+model.evaluate(x_test, y_test)[1]
+# # print(data_train[len(data_train) - 1])
+#img = cv2.imread(x_train[0][0])
+
+#print(img)
+# img = plt.imshow(x_train[0])
+# plt.show()
+
+
