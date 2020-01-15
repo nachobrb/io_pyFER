@@ -1,15 +1,18 @@
 # ======== IMPORTS ========
+import sys
 import cv2
-from os import listdir
-from os.path import isfile, join, isdir
 import re
 import matplotlib.pyplot as plt
+import numpy as np
+import tensorflow as tf
+from os import listdir
+from os.path import isfile, join, isdir
 from keras.utils import to_categorical
 from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D
 from keras.models import Sequential
-import numpy as np
-import tensorflow as tf
 from scipy import misc
+from skimage.transform import resize
+
 
 # ====== GLOBAL VARS ======
 
@@ -22,7 +25,7 @@ def get_elements(path, type):
         ret = [f for f in listdir(path) if isdir(join(path, f))]
     return ret
 
-def load_data():
+def load_data(): 
     data_train = []
     data_label = []
     data_test = []
@@ -73,28 +76,87 @@ def load_data():
             for element in elems_tmp:
                 if element.endswith(".png"):
                     data_test.append(path_dataset_test + "/" + directory + "/" + dirs_sub_tmp + "/" + element)
+
     return data_train, data_label, data_test
 
+# ========= MAIN ==========
+# =========================
+# Constants definitions
+image_size = 600
+max_files = int(sys.argv[1])
 
-
-# =========
-# MAIN ==========
+# Getting file names and labels
 print("Retrieving data...")
 x_file_name, y_labels, data_test = load_data()
 
-from skimage.transform import resize
-x=np.empty((0,600,600,3))
+# Defining an empty array to be used as dataset
+x=np.empty((0,image_size,image_size,3))
 y=to_categorical(y_labels)
 
-# for i in range(0,len(x_file_name):
-for i in range(0,30):
+# max_files should not exceed len(x_file_name)
+if (max_files > len(x_file_name)):
+    max_files = len(x_file_name)
+
+# Filling our empty array
+for i in range(0,max_files):
+    if (i % 10 == 0):
+        print("[ " + int((i*100)/max_files) + " % ] Reading images... Images read: ")
     img = plt.imread(x_file_name[i])
-    img = resize(img,(1,600,600,3))
+    img = resize(img,(1,image_size,image_size,3))
     x=np.append(x, img,axis=0)
+print("[ 100 % ] Reading images... Images read: ")
+print("Data retrieved")
+
+# Openning an image to predict it
+img = plt.imread(x_file_name[20])
+img_r = plt.imshow(img)
+plt.show()
+
+# Architechture
+model = Sequential()
+
+# Conv layer
+model.add(Conv2D(32, (5,5), activation='relu', input_shape=(image_size,image_size,3)))
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Conv2D(32, (5,5), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Flatten())
+model.add(Dense(1000, activation='relu'))
+model.add(Dense(8, activation='softmax'))
+
+## Layer 1
+# model.add(Conv2D(32, (7,7), activation='relu', input_shape=(image_size,image_size,3)))
+# model.add(MaxPooling2D(pool_size=(2,2)))
+
+## Layer 2
+# model.add(Conv2D(64, (5,5), activation='relu', input_shape=(image_size,image_size,3)))
+# model.add(MaxPooling2D(pool_size=(2,2)))
+
+## Layer 3
+# model.add(Conv2D(64, (5,5), activation='tanh', input_shape=(image_size,image_size,3)))
+# model.add(MaxPooling2D(pool_size=(2,2)))
+
+## Layer 4
+# model.add(Conv2D(128, (3,3), activation='tanh', input_shape=(image_size,image_size,3)))
+# model.add(MaxPooling2D(pool_size=(2,2)))
+
+## Layer 5
+# model.add(Flatten())
+# model.add(Dense(1000, activation='relu'))
+# model.add(Dense(8, activation='softmax'))
+
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+hist = model.fit(x[0:max_files], y[0:max_files], batch_size=256, epochs=10, validation_split=0.3) 
+probs = model.predict(resize(img,(1,image_size,image_size,3)))
+print(probs)
+# plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
 
 
 
-img = plt.imread(x_file_name[60])
+
+
+
 # img = resize(img,(1,600,600,3))
 # print(type(img))
 # test=np.empty((0,300,300,3))
@@ -106,8 +168,6 @@ img = plt.imread(x_file_name[60])
 # y=[0,1]
 # y = to_categorical(y)
 # print(y)
-img_r = plt.imshow(img)
-plt.show()
 # y_train_one_hot = to_categorical(y_train)
 # print(np.array(x_train))
 # print(x_train.shape)
@@ -119,28 +179,11 @@ plt.show()
 # x_train = np.array(x_train[int(len(x_train)*0.1):])
 # y_train = y_train_one_hot[int(len(y_train_one_hot)*0.1):]
 #print(x_train)
-print("OK")
 
 
 
-# Architechture
-model = Sequential()
 
-# Conv layer
-model.add(Conv2D(32, (5,5), activation='relu', input_shape=(600,600,3)))
-model.add(MaxPooling2D(pool_size=(2,2)))
-model.add(Conv2D(32, (5,5), activation='relu'))
-model.add(MaxPooling2D(pool_size=(2,2)))
-model.add(Flatten())
 
-model.add(Dense(1000, activation='relu'))
-model.add(Dense(8, activation='softmax'))
-
-model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-
-hist = model.fit(x[0:30], y[0:30], batch_size=256, epochs=10, validation_split=0.3) 
-probs = model.predict(resize(img,(1,600,600,3)))
-print(probs)
 # model.evaluate(test, y)[1]
 # # print(data_train[len(data_train) - 1])
 #img = cv2.imread(x_train[0][0])

@@ -1,13 +1,11 @@
-##### shell
+##### Dependencies 
 ```
-    brew install opencv
+> python
+> pip
+    > tensorflow
+    > python-opencv
+    > scikit-image
+    > keras
+    > numpy
+    > matplotlib
 ```
-
-##### test opencv
-```
-$ python3
->>> import cv2 
->>> print(cv2.__version__)
-4.2.0
-```
-
